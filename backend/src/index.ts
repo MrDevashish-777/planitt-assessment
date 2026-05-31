@@ -8,6 +8,7 @@ import connectDB from "./config/db";
 import violationRoutes from "./api/routes/violation";
 import adminRoutes from "./api/routes/admin";
 import resultRoutes from "./api/routes/result";
+import candidateRoutes from "./api/routes/candidate";
 
 const app = express();
 const allowedOrigins = config.CORS_ORIGIN.split(",")
@@ -36,6 +37,7 @@ app.use("/api/attempts", attemptRoutes);
 app.use("/api/violations", violationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/results", resultRoutes);
+app.use("/api/candidates", candidateRoutes);
 
 // ---------- Error Handler ----------
 app.use(

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCandidates, addCandidate, bulkAddCandidates, deleteCandidate, bulkDeleteCandidates } from "@/services/admin.service";
+import { getCandidates, addCandidate, bulkAddCandidates, deleteCandidate, bulkDeleteCandidates, CandidateImportPayload } from "@/services/admin.service";
 import { Candidate } from "@/types";
 import { notifyError, notifySuccess } from "@/lib/notify";
 import { openConfirmDialog } from "@/lib/dialog";
@@ -119,8 +119,18 @@ export default function CandidatesPage() {
       }
 
       const headers = allRows[0];
+      const normalizedHeaders = headers.map((header) => header.toLowerCase().trim());
+      const findHeaderIndex = (matches: string[]) =>
+        normalizedHeaders.findIndex((header) =>
+          matches.some((match) => header.includes(match))
+        );
+
       let emailIdx = -1;
       let nameIdx = -1;
+      const phoneIdx = findHeaderIndex(["phone", "mobile", "contact"]);
+      const addressIdx = findHeaderIndex(["address"]);
+      const resumeIdx = findHeaderIndex(["resume", "cv"]);
+      const aboutIdx = findHeaderIndex(["about", "overall", "summary", "profile"]);
 
       // Try to find indices based on header names
       headers.forEach((header, idx) => {
@@ -154,7 +164,7 @@ export default function CandidatesPage() {
       }
 
       const dataRows = allRows.slice(1);
-      const parsedCandidates: { email: string; full_name: string }[] = [];
+      const parsedCandidates: CandidateImportPayload[] = [];
 
       dataRows.forEach((cols) => {
         let email = "";
@@ -178,7 +188,14 @@ export default function CandidatesPage() {
         }
 
         if (email && email.includes("@")) {
-          parsedCandidates.push({ email, full_name: name });
+          parsedCandidates.push({
+            email,
+            full_name: name,
+            phone: phoneIdx !== -1 ? cols[phoneIdx] || "" : "",
+            address: addressIdx !== -1 ? cols[addressIdx] || "" : "",
+            resume_url: resumeIdx !== -1 ? cols[resumeIdx] || "" : "",
+            about: aboutIdx !== -1 ? cols[aboutIdx] || "" : "",
+          });
         }
       });
 
@@ -367,14 +384,14 @@ export default function CandidatesPage() {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1 space-y-4">
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  Import multiple candidates at once. Our system will automatically detect <span className="font-semibold text-gray-900">Name</span> and <span className="font-semibold text-gray-900">Email</span> columns even from complex sheets.
+                  Import multiple candidates at once. Our system will automatically detect <span className="font-semibold text-gray-900">Name</span>, <span className="font-semibold text-gray-900">Email</span>, phone, address, resume, and about columns even from complex sheets.
                 </p>
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Supported Format</h3>
                   <div className="flex gap-2">
                     <code className="text-[11px] bg-white border border-gray-200 px-2 py-1 rounded text-indigo-600 font-mono">name,email</code>
-                    <code className="text-[11px] bg-white border border-gray-200 px-2 py-1 rounded text-indigo-600 font-mono">email,name</code>
-                    <code className="text-[11px] bg-white border border-gray-200 px-2 py-1 rounded text-indigo-600 font-mono">multi-column</code>
+                    <code className="text-[11px] bg-white border border-gray-200 px-2 py-1 rounded text-indigo-600 font-mono">phone,address</code>
+                    <code className="text-[11px] bg-white border border-gray-200 px-2 py-1 rounded text-indigo-600 font-mono">resume,about</code>
                   </div>
                 </div>
               </div>

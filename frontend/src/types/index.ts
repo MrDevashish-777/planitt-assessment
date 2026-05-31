@@ -26,6 +26,11 @@ export type Candidate = {
   full_name: string;
   email: string;
   phone?: string;
+  address?: string;
+  resume_url?: string;
+  about?: string;
+  source?: "ADMIN" | "CSV" | "GOOGLE_FORM";
+  form_submitted_at?: string;
 };
 
 export type AuthUser = {

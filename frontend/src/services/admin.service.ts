@@ -247,6 +247,15 @@ export const getCandidates = () => {
   return apiFetch("/api/admin/candidates");
 };
 
+export type CandidateImportPayload = {
+  email: string;
+  full_name?: string;
+  phone?: string;
+  address?: string;
+  resume_url?: string;
+  about?: string;
+};
+
 export const addCandidate = (payload: { email: string; full_name?: string }) => {
   return apiFetch("/api/admin/candidates", {
     method: "POST",
@@ -254,7 +263,7 @@ export const addCandidate = (payload: { email: string; full_name?: string }) => 
   });
 };
 
-export const bulkAddCandidates = (candidates: { email: string; full_name?: string }[]) => {
+export const bulkAddCandidates = (candidates: CandidateImportPayload[]) => {
   return apiFetch("/api/admin/candidates/bulk", {
     method: "POST",
     body: JSON.stringify({ candidates }),

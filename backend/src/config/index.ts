@@ -1,5 +1,7 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const config = {
   PORT: process.env.PORT || 5000,
@@ -14,6 +16,7 @@ const config = {
     process.env.CORS_ORIGIN ||
     "https://planitt-assessment.onrender.com,https://test.planitt.in",
   ADMIN_SHARED_PASSWORD: process.env.ADMIN_SHARED_PASSWORD || "",
+  GOOGLE_FORM_WEBHOOK_SECRET: process.env.GOOGLE_FORM_WEBHOOK_SECRET || "",
 };
 
 export default config;

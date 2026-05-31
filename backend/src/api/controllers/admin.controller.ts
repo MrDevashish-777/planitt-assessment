@@ -1029,13 +1029,19 @@ export async function deleteAllQuestions(req: Request, res: Response) {
 export async function getCandidates(req: Request, res: Response) {
   try {
     const candidates = await User.find({ role: "CANDIDATE" })
-      .select("_id email full_name created_at")
+      .select("_id email full_name phone address resume_url about source form_submitted_at created_at")
       .sort({ created_at: -1 });
 
     const formatted = candidates.map((c) => ({
       id: c._id,
       email: c.email,
       full_name: c.full_name,
+      phone: c.phone,
+      address: c.address,
+      resume_url: c.resume_url,
+      about: c.about,
+      source: c.source,
+      form_submitted_at: c.form_submitted_at,
       created_at: c.created_at,
     }));
 
@@ -1058,6 +1064,7 @@ export async function addCandidate(req: Request, res: Response) {
       email,
       full_name: full_name || "",
       role: "CANDIDATE",
+      source: "ADMIN",
       password_hash: "candidate_placeholder", // password_hash is required by schema
     });
 
@@ -1087,23 +1094,44 @@ export async function bulkAddCandidates(req: Request, res: Response) {
     }
 
     const insertedIds = [];
+    let updateCount = 0;
     let skipCount = 0;
 
     for (const candidate of candidates) {
-      const { email, full_name } = candidate;
+      const { email, full_name, phone, address, resume_url, about } = candidate;
       if (!email) continue;
 
       try {
-        const existingUser = await User.findOne({ email });
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const existingUser = await User.findOne({ email: normalizedEmail });
+        const candidateDetails = {
+          ...(full_name ? { full_name } : {}),
+          ...(phone ? { phone } : {}),
+          ...(address ? { address } : {}),
+          ...(resume_url ? { resume_url } : {}),
+          ...(about ? { about } : {}),
+          source: "CSV",
+        };
+
         if (existingUser) {
-          skipCount++;
+          await User.updateOne(
+            { _id: existingUser._id },
+            { $set: candidateDetails },
+            { runValidators: true }
+          );
+          updateCount++;
           continue;
         }
 
         const newCandidate = await User.create({
-          email,
+          email: normalizedEmail,
           full_name: full_name || "",
           role: "CANDIDATE",
+          phone: phone || "",
+          address: address || "",
+          resume_url: resume_url || "",
+          about: about || "",
+          source: "CSV",
           password_hash: "candidate_placeholder", // password_hash is required by schema
         });
 
@@ -1117,6 +1145,7 @@ export async function bulkAddCandidates(req: Request, res: Response) {
     res.status(201).json({
       message: "Bulk upload completed",
       insertedCount: insertedIds.length,
+      updatedCount: updateCount,
       skippedCount: skipCount,
     });
   } catch (error) {
