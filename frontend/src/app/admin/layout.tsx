@@ -14,6 +14,8 @@ export default function AdminLayout({
   const pathname = usePathname();
   const isAssessmentsRoute = pathname === "/admin/assessments" || pathname.startsWith("/admin/assessments/");
   const isCandidatesRoute = pathname === "/admin/candidates" || pathname.startsWith("/admin/candidates/");
+  const isInterviewsRoute = pathname === "/admin/interviews" || pathname.startsWith("/admin/interviews/");
+  const isSelectedRoute = pathname === "/admin/selected" || pathname.startsWith("/admin/selected/");
   const isAdminsRoute = pathname === "/admin/admins" || pathname.startsWith("/admin/admins/");
 
   if (loading) {
@@ -57,6 +59,26 @@ export default function AdminLayout({
                 }`}
               >
                 Candidates
+              </Link>
+              <Link 
+                href="/admin/interviews" 
+                className={`flex-none whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-all sm:px-4 sm:py-2 sm:text-sm ${
+                  isInterviewsRoute
+                    ? "bg-[#e3f2fd] text-[#0d47a1] shadow-sm"
+                    : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                }`}
+              >
+                Interviews
+              </Link>
+              <Link 
+                href="/admin/selected" 
+                className={`flex-none whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-all sm:px-4 sm:py-2 sm:text-sm ${
+                  isSelectedRoute
+                    ? "bg-[#e8f5e9] text-[#2e7d32] shadow-sm"
+                    : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                }`}
+              >
+                Selected
               </Link>
               <Link 
                 href="/admin/admins" 

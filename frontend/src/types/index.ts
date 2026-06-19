@@ -31,6 +31,57 @@ export type Candidate = {
   about?: string;
   source?: "ADMIN" | "CSV" | "GOOGLE_FORM";
   form_submitted_at?: string;
+  education_details?: string;
+  application_status?: "Applied" | "Shortlisted" | "Interviewing" | "Rejected" | "Selected" | string;
+  previous_round_results?: string;
+  skills?: string;
+  projects?: string;
+  work_experience?: string;
+  ai_summary?: string;
+  ai_questions?: Array<{ category: string; question: string }>;
+  ai_questions_history?: Array<Array<{ category: string; question: string }>>;
+  created_at?: string;
+  attempts?: {
+    id: string;
+    assessment_id: string;
+    assessment_title: string;
+    final_score: number | null;
+    result: string | null;
+    status: string;
+    started_at: string;
+    submitted_at: string | null;
+  }[];
+};
+
+export type Interview = {
+  candidate_id: string;
+  interviewer_id: string;
+  ratings: {
+    technical_knowledge: number;
+    communication_skills: number;
+    problem_solving: number;
+    confidence: number;
+    overall_performance: number;
+  };
+  overall_score: number;
+  decision_status: "Selected" | "Rejected" | "Hold";
+  feedback_notes: string;
+  interviewer_comments: string;
+  interview_timestamp: string;
+  history?: Array<{
+    ratings: {
+      technical_knowledge: number;
+      communication_skills: number;
+      problem_solving: number;
+      confidence: number;
+      overall_performance: number;
+    };
+    overall_score: number;
+    decision_status: "Selected" | "Rejected" | "Hold";
+    feedback_notes: string;
+    interviewer_comments: string;
+    timestamp: string;
+  }>;
 };
 
 export type AuthUser = {

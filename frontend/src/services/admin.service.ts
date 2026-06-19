@@ -276,6 +276,28 @@ export const deleteCandidate = (id: string | number) => {
   });
 };
 
+export const updateCandidate = (
+  id: string | number,
+  payload: {
+    full_name?: string;
+    phone?: string;
+    address?: string;
+    resume_url?: string;
+    about?: string;
+    education_details?: string;
+    application_status?: string;
+    previous_round_results?: string;
+    skills?: string;
+    projects?: string;
+    work_experience?: string;
+  }
+) => {
+  return apiFetch(`/api/admin/candidates/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+};
+
 export const bulkDeleteCandidates = (ids: (string | number)[]) => {
   return apiFetch("/api/admin/candidates/bulk-delete", {
     method: "POST",
@@ -301,5 +323,42 @@ export const addAdmin = (payload: { email: string; full_name?: string }) => {
 export const deleteAdmin = (id: string | number) => {
   return apiFetch(`/api/admin/admins/${id}`, {
     method: "DELETE",
+  });
+};
+
+export const generateCandidateSummary = (id: string | number) => {
+  return apiFetch(`/api/admin/candidates/${id}/ai-summary`, {
+    method: "POST",
+  });
+};
+
+export const generateInterviewQuestions = (id: string | number) => {
+  return apiFetch(`/api/admin/candidates/${id}/ai-questions`, {
+    method: "POST",
+  });
+};
+
+export const getInterviewDetails = (id: string | number) => {
+  return apiFetch(`/api/admin/candidates/${id}/interview`);
+};
+
+export const saveInterviewEvaluation = (
+  id: string | number,
+  payload: {
+    ratings: {
+      technical_knowledge: number;
+      communication_skills: number;
+      problem_solving: number;
+      confidence: number;
+      overall_performance: number;
+    };
+    decision_status: "Selected" | "Rejected" | "Hold" | string;
+    feedback_notes?: string;
+    interviewer_comments?: string;
+  }
+) => {
+  return apiFetch(`/api/admin/candidates/${id}/interview`, {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 };

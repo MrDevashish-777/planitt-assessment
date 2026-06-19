@@ -11,6 +11,15 @@ export interface IUser extends Document {
   about?: string;
   source?: "ADMIN" | "CSV" | "GOOGLE_FORM";
   form_submitted_at?: Date;
+  education_details?: string;
+  application_status?: "Applied" | "Shortlisted" | "Interviewing" | "Rejected" | "Selected";
+  previous_round_results?: string;
+  skills?: string;
+  projects?: string;
+  work_experience?: string;
+  ai_summary?: string;
+  ai_questions?: Array<{ category: string; question: string }>;
+  ai_questions_history?: Array<Array<{ category: string; question: string }>>;
   created_at: Date;
   updated_at: Date;
 }
@@ -59,6 +68,43 @@ const userSchema = new Schema<IUser>(
     },
     form_submitted_at: {
       type: Date,
+    },
+    education_details: {
+      type: String,
+      trim: true,
+    },
+    application_status: {
+      type: String,
+      enum: ["Applied", "Shortlisted", "Interviewing", "Rejected", "Selected"],
+      default: "Applied",
+    },
+    previous_round_results: {
+      type: String,
+      trim: true,
+    },
+    skills: {
+      type: String,
+      trim: true,
+    },
+    projects: {
+      type: String,
+      trim: true,
+    },
+    work_experience: {
+      type: String,
+      trim: true,
+    },
+    ai_summary: {
+      type: String,
+      trim: true,
+    },
+    ai_questions: {
+      type: Array,
+      default: [],
+    },
+    ai_questions_history: {
+      type: Array,
+      default: [],
     },
   },
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }

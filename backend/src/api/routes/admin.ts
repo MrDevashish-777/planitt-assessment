@@ -21,6 +21,7 @@ import {
   deleteQuestion,
   deleteAllQuestions,
   getCandidates,
+  updateCandidate,
   addCandidate,
   bulkAddCandidates,
   deleteCandidate,
@@ -29,6 +30,10 @@ import {
   getAdmins,
   addAdmin,
   deleteAdmin,
+  generateCandidateSummaryController,
+  generateCandidateQuestionsController,
+  getCandidateInterviewController,
+  saveCandidateInterviewController,
 } from "../controllers/admin.controller";
 import { Router } from "express";
 import { requireAuth } from "../middlewares/auth.middleware";
@@ -70,9 +75,14 @@ router.delete("/assessments/:assessmentId/questions", deleteAllQuestions);
 
 router.get("/candidates", getCandidates);
 router.post("/candidates", addCandidate);
+router.patch("/candidates/:id", updateCandidate);
 router.post("/candidates/bulk", bulkAddCandidates);
 router.delete("/candidates/:id", deleteCandidate);
 router.post("/candidates/bulk-delete", bulkDeleteCandidates);
+router.post("/candidates/:id/ai-summary", generateCandidateSummaryController);
+router.post("/candidates/:id/ai-questions", generateCandidateQuestionsController);
+router.get("/candidates/:id/interview", getCandidateInterviewController);
+router.post("/candidates/:id/interview", saveCandidateInterviewController);
 router.get("/dashboard-stats", getDashboardStats);
 
 router.get("/admins", getAdmins);

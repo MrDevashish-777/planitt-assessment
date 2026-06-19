@@ -1,7 +1,16 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import dns from "dns";
 
 dotenv.config();
+
+// Override DNS servers to Google Public DNS to prevent querySrv ECONNREFUSED issues
+try {
+  dns.setServers(["8.8.8.8", "8.8.4.4"]);
+  console.log("ℹ️ DNS servers overridden to Google Public DNS (8.8.8.8, 8.8.4.4) for MongoDB resolution");
+} catch (e: any) {
+  console.warn("⚠️ Failed to override process DNS servers:", e.message);
+}
 
 const connectDB = async () => {
   try {

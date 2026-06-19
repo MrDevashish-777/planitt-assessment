@@ -5,6 +5,8 @@ import Question from "../../models/Question";
 import Answer from "../../models/Answer";
 import Attempt from "../../models/Attempt";
 import Violation from "../../models/Violation";
+import Interview from "../../models/Interview";
+import { generateAiSummary, generateAiQuestions } from "../../services/ai.service";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { finalizeAttemptIfComplete } from "../../services/finalizeAttempt.service";
 import {
@@ -1029,26 +1031,152 @@ export async function deleteAllQuestions(req: Request, res: Response) {
 export async function getCandidates(req: Request, res: Response) {
   try {
     const candidates = await User.find({ role: "CANDIDATE" })
-      .select("_id email full_name phone address resume_url about source form_submitted_at created_at")
+      .select("_id email full_name phone address resume_url about source form_submitted_at education_details application_status previous_round_results skills projects work_experience ai_summary ai_questions ai_questions_history created_at")
       .sort({ created_at: -1 });
 
-    const formatted = candidates.map((c) => ({
-      id: c._id,
-      email: c.email,
-      full_name: c.full_name,
-      phone: c.phone,
-      address: c.address,
-      resume_url: c.resume_url,
-      about: c.about,
-      source: c.source,
-      form_submitted_at: c.form_submitted_at,
-      created_at: c.created_at,
-    }));
+    const candidateIds = candidates.map((c) => c._id);
+    const attempts = await Attempt.find({ user_id: { $in: candidateIds } })
+      .populate("assessment_id", "title")
+      .lean();
+
+    const attemptsByCandidate: { [key: string]: any[] } = {};
+    attempts.forEach((attempt) => {
+      const userIdStr = attempt.user_id.toString();
+      if (!attemptsByCandidate[userIdStr]) {
+        attemptsByCandidate[userIdStr] = [];
+      }
+      attemptsByCandidate[userIdStr].push({
+        id: attempt._id,
+        assessment_id: attempt.assessment_id?._id || attempt.assessment_id,
+        assessment_title: (attempt.assessment_id as any)?.title || "Unknown Assessment",
+        final_score: attempt.final_score ?? null,
+        result: attempt.result || null,
+        status: attempt.status,
+        started_at: attempt.started_at,
+        submitted_at: attempt.submitted_at || null,
+      });
+    });
+
+    const formatted = candidates.map((c) => {
+      const candidateAttempts = attemptsByCandidate[c._id.toString()] || [];
+      return {
+        id: c._id,
+        email: c.email,
+        full_name: c.full_name,
+        phone: c.phone,
+        address: c.address,
+        resume_url: c.resume_url,
+        about: c.about,
+        source: c.source,
+        form_submitted_at: c.form_submitted_at,
+        education_details: c.education_details || "",
+        application_status: c.application_status || "Applied",
+        previous_round_results: c.previous_round_results || "",
+        skills: c.skills || "",
+        projects: c.projects || "",
+        work_experience: c.work_experience || "",
+        ai_summary: c.ai_summary || "",
+        ai_questions: c.ai_questions || [],
+        ai_questions_history: c.ai_questions_history || [],
+        created_at: c.created_at,
+        attempts: candidateAttempts,
+      };
+    });
 
     res.json(formatted);
   } catch (error) {
     console.error("❌ getCandidates error:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function updateCandidate(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!requireObjectIdParam(res, "id", id)) {
+      return;
+    }
+
+    const {
+      full_name,
+      phone,
+      address,
+      resume_url,
+      about,
+      education_details,
+      application_status,
+      previous_round_results,
+      skills,
+      projects,
+      work_experience,
+    } = req.body;
+
+    const updateFields: any = {};
+    if (full_name !== undefined) updateFields.full_name = full_name;
+    if (phone !== undefined) updateFields.phone = phone;
+    if (address !== undefined) updateFields.address = address;
+    if (resume_url !== undefined) updateFields.resume_url = resume_url;
+    if (about !== undefined) updateFields.about = about;
+    if (education_details !== undefined) updateFields.education_details = education_details;
+    if (application_status !== undefined) updateFields.application_status = application_status;
+    if (previous_round_results !== undefined) updateFields.previous_round_results = previous_round_results;
+    if (skills !== undefined) updateFields.skills = skills;
+    if (projects !== undefined) updateFields.projects = projects;
+    if (work_experience !== undefined) updateFields.work_experience = work_experience;
+
+    const updatedCandidate = await User.findOneAndUpdate(
+      { _id: id, role: "CANDIDATE" },
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    ).select("_id email full_name phone address resume_url about source education_details application_status previous_round_results skills projects work_experience ai_summary ai_questions ai_questions_history created_at");
+
+    if (!updatedCandidate) {
+      return res.status(404).json({ message: "Candidate not found" });
+    }
+
+    // Fetch attempts for this candidate as well to return the complete profile context
+    const attempts = await Attempt.find({ user_id: updatedCandidate._id })
+      .populate("assessment_id", "title")
+      .lean();
+
+    const formattedAttempts = attempts.map((attempt) => ({
+      id: attempt._id,
+      assessment_id: attempt.assessment_id?._id || attempt.assessment_id,
+      assessment_title: (attempt.assessment_id as any)?.title || "Unknown Assessment",
+      final_score: attempt.final_score ?? null,
+      result: attempt.result || null,
+      status: attempt.status,
+      started_at: attempt.started_at,
+      submitted_at: attempt.submitted_at || null,
+    }));
+
+    res.json({
+      message: "Candidate updated successfully",
+      candidate: {
+        id: updatedCandidate._id,
+        email: updatedCandidate.email,
+        full_name: updatedCandidate.full_name,
+        phone: updatedCandidate.phone,
+        address: updatedCandidate.address,
+        resume_url: updatedCandidate.resume_url,
+        about: updatedCandidate.about,
+        source: updatedCandidate.source,
+        education_details: updatedCandidate.education_details || "",
+        application_status: updatedCandidate.application_status || "Applied",
+        previous_round_results: updatedCandidate.previous_round_results || "",
+        skills: updatedCandidate.skills || "",
+        projects: updatedCandidate.projects || "",
+        work_experience: updatedCandidate.work_experience || "",
+        ai_summary: updatedCandidate.ai_summary || "",
+        ai_questions: updatedCandidate.ai_questions || [],
+        ai_questions_history: updatedCandidate.ai_questions_history || [],
+        created_at: updatedCandidate.created_at,
+        attempts: formattedAttempts,
+      },
+    });
+  } catch (error: any) {
+    console.error("❌ updateCandidate error:", error);
+    res.status(500).json({ message: error.message || "Internal server error" });
   }
 }
 
@@ -1340,5 +1468,230 @@ export async function deleteAdmin(req: Request, res: Response) {
   } catch (error) {
     console.error("❌ deleteAdmin error:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+/**
+ * POST /api/admin/candidates/:id/ai-summary
+ */
+export async function generateCandidateSummaryController(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!requireObjectIdParam(res, "id", id)) {
+      return;
+    }
+
+    const candidate = await User.findOne({ _id: id, role: "CANDIDATE" });
+    if (!candidate) {
+      return res.status(404).json({ message: "Candidate not found" });
+    }
+
+    // Fetch attempts to pass to summary generator
+    const attempts = await Attempt.find({ user_id: candidate._id })
+      .populate("assessment_id", "title")
+      .lean();
+
+    const formattedAttempts = attempts.map((a) => ({
+      assessment_title: (a.assessment_id as any)?.title || "Unknown Assessment",
+      final_score: a.final_score ?? null,
+      result: a.result || null,
+      status: a.status,
+    }));
+
+    const summary = await generateAiSummary({
+      full_name: candidate.full_name,
+      email: candidate.email,
+      phone: candidate.phone,
+      education_details: candidate.education_details,
+      skills: candidate.skills,
+      projects: candidate.projects,
+      work_experience: candidate.work_experience,
+      attempts: formattedAttempts,
+    });
+
+    candidate.ai_summary = summary;
+    await candidate.save();
+
+    res.json({
+      message: "AI Summary generated successfully",
+      ai_summary: summary,
+    });
+  } catch (error: any) {
+    console.error("❌ generateCandidateSummaryController error:", error);
+    res.status(500).json({ message: error.message || "Internal server error" });
+  }
+}
+
+/**
+ * POST /api/admin/candidates/:id/ai-questions
+ */
+export async function generateCandidateQuestionsController(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!requireObjectIdParam(res, "id", id)) {
+      return;
+    }
+
+    const candidate = await User.findOne({ _id: id, role: "CANDIDATE" });
+    if (!candidate) {
+      return res.status(404).json({ message: "Candidate not found" });
+    }
+
+    const questions = await generateAiQuestions({
+      full_name: candidate.full_name,
+      email: candidate.email,
+      phone: candidate.phone,
+      education_details: candidate.education_details,
+      skills: candidate.skills,
+      projects: candidate.projects,
+      work_experience: candidate.work_experience,
+    });
+
+    // If current questions exist, archive them to history
+    const history = candidate.ai_questions_history || [];
+    if (candidate.ai_questions && candidate.ai_questions.length > 0) {
+      history.push(candidate.ai_questions);
+    }
+
+    candidate.ai_questions = questions;
+    candidate.ai_questions_history = history;
+    await candidate.save();
+
+    res.json({
+      message: "AI Interview Questions generated successfully",
+      ai_questions: questions,
+      ai_questions_history: history,
+    });
+  } catch (error: any) {
+    console.error("❌ generateCandidateQuestionsController error:", error);
+    res.status(500).json({ message: error.message || "Internal server error" });
+  }
+}
+
+/**
+ * GET /api/admin/candidates/:id/interview
+ */
+export async function getCandidateInterviewController(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!requireObjectIdParam(res, "id", id)) {
+      return;
+    }
+
+    const interview = await Interview.findOne({ candidate_id: id }).lean();
+    
+    if (!interview) {
+      return res.json({
+        candidate_id: id,
+        ratings: {
+          technical_knowledge: 5,
+          communication_skills: 5,
+          problem_solving: 5,
+          confidence: 5,
+          overall_performance: 5,
+        },
+        overall_score: 5,
+        decision_status: "Hold",
+        feedback_notes: "",
+        interviewer_comments: "",
+        history: [],
+      });
+    }
+
+    res.json(interview);
+  } catch (error: any) {
+    console.error("❌ getCandidateInterviewController error:", error);
+    res.status(500).json({ message: error.message || "Internal server error" });
+  }
+}
+
+/**
+ * POST /api/admin/candidates/:id/interview
+ */
+export async function saveCandidateInterviewController(req: AuthRequest, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!requireObjectIdParam(res, "id", id)) {
+      return;
+    }
+
+    const {
+      ratings,
+      decision_status,
+      feedback_notes,
+      interviewer_comments,
+    } = req.body;
+
+    if (!ratings || !decision_status) {
+      return res.status(400).json({ message: "Ratings and decision_status are required" });
+    }
+
+    const tk = Number(ratings.technical_knowledge || 5);
+    const cs = Number(ratings.communication_skills || 5);
+    const ps = Number(ratings.problem_solving || 5);
+    const cf = Number(ratings.confidence || 5);
+    const op = Number(ratings.overall_performance || 5);
+
+    const overallScore = Number(((tk + cs + ps + cf + op) / 5).toFixed(1));
+
+    const updatedRatings = {
+      technical_knowledge: tk,
+      communication_skills: cs,
+      problem_solving: ps,
+      confidence: cf,
+      overall_performance: op,
+    };
+
+    let interview = await Interview.findOne({ candidate_id: id });
+    const interviewerId = req.user!.userId;
+
+    if (interview) {
+      // Archive current state to history
+      const historyLog = interview.history || [];
+      historyLog.push({
+        ratings: interview.ratings,
+        overall_score: interview.overall_score,
+        decision_status: interview.decision_status,
+        feedback_notes: interview.feedback_notes,
+        interviewer_comments: interview.interviewer_comments,
+        timestamp: interview.interview_timestamp || interview.updated_at || new Date(),
+      });
+
+      interview.interviewer_id = interviewerId as any;
+      interview.ratings = updatedRatings;
+      interview.overall_score = overallScore;
+      interview.decision_status = decision_status;
+      interview.feedback_notes = feedback_notes || "";
+      interview.interviewer_comments = interviewer_comments || "";
+      interview.interview_timestamp = new Date();
+      interview.history = historyLog;
+      await interview.save();
+    } else {
+      interview = await Interview.create({
+        candidate_id: id,
+        interviewer_id: interviewerId,
+        ratings: updatedRatings,
+        overall_score: overallScore,
+        decision_status,
+        feedback_notes: feedback_notes || "",
+        interviewer_comments: interviewer_comments || "",
+        interview_timestamp: new Date(),
+        history: [],
+      });
+    }
+
+    // Sync candidate user status with interview decision status
+    await User.updateOne(
+      { _id: id, role: "CANDIDATE" },
+      { $set: { application_status: decision_status } }
+    );
+
+    res.json({
+      message: "Interview evaluation saved successfully",
+      interview,
+    });
+  } catch (error: any) {
+    console.error("❌ saveCandidateInterviewController error:", error);
+    res.status(500).json({ message: error.message || "Internal server error" });
   }
 }

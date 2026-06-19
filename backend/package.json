@@ -15,6 +15,7 @@
     "backfill-descriptive": "ts-node src/scripts/backfillDescriptiveGrades.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@types/cookie-parser": "^1.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
