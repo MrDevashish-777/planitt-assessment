@@ -28,8 +28,9 @@ async function createAdminUser() {
 
     console.log("✅ Connected to MongoDB");
 
-    const email = "admin@example.com";
-    const fullName = "Admin User";
+    const args = process.argv.slice(2);
+    const email = args[0] || "admin@example.com";
+    const fullName = args[1] || "Admin User";
 
     const existingAdmin = await User.findOne({ email });
     if (existingAdmin) {
@@ -40,7 +41,7 @@ async function createAdminUser() {
     const adminUser = await User.create({
       email,
       full_name: fullName,
-      password_hash: "admin123", // Placeholder since login currently only checks email
+      password_hash: "admin123", // Placeholder since login checks ADMIN_SHARED_PASSWORD
       role: "ADMIN",
     });
 

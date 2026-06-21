@@ -147,8 +147,8 @@ export default function LoginPage() {
             {loading ? "Entering..." : "Enter assessment"}
           </button>
 
-          <div className="mt-6 rounded-2xl border border-amber-200/70 bg-amber-50/90 px-4 py-4 text-sm leading-6 text-amber-900">
-            Candidates only need email. Admin users must enable admin login and enter the shared password.
+          <div className="mt-6 rounded-2xl border border-stone-200/60 bg-stone-50/80 px-4 py-3.5 text-xs leading-5 text-stone-500">
+            <span className="font-semibold text-stone-700">Notice:</span> Candidates only need their email address to sign in. Admin users can check the <span className="font-medium text-stone-700">Login as admin</span> box to enter the shared password.
           </div>
         </form>
       </div>
