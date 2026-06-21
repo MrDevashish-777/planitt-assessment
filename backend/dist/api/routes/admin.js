@@ -37,9 +37,14 @@ router.delete("/assessments/:assessmentId/questions/:questionId", admin_controll
 router.delete("/assessments/:assessmentId/questions", admin_controller_1.deleteAllQuestions);
 router.get("/candidates", admin_controller_1.getCandidates);
 router.post("/candidates", admin_controller_1.addCandidate);
+router.patch("/candidates/:id", admin_controller_1.updateCandidate);
 router.post("/candidates/bulk", admin_controller_1.bulkAddCandidates);
 router.delete("/candidates/:id", admin_controller_1.deleteCandidate);
 router.post("/candidates/bulk-delete", admin_controller_1.bulkDeleteCandidates);
+router.post("/candidates/:id/ai-summary", admin_controller_1.generateCandidateSummaryController);
+router.post("/candidates/:id/ai-questions", admin_controller_1.generateCandidateQuestionsController);
+router.get("/candidates/:id/interview", admin_controller_1.getCandidateInterviewController);
+router.post("/candidates/:id/interview", admin_controller_1.saveCandidateInterviewController);
 router.get("/dashboard-stats", admin_controller_1.getDashboardStats);
 router.get("/admins", admin_controller_1.getAdmins);
 router.post("/admins", admin_controller_1.addAdmin);

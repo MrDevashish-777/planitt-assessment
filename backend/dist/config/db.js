@@ -5,7 +5,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const dns_1 = __importDefault(require("dns"));
 dotenv_1.default.config();
+// Override DNS servers to Google Public DNS to prevent querySrv ECONNREFUSED issues
+try {
+    dns_1.default.setServers(["8.8.8.8", "8.8.4.4"]);
+    console.log("ℹ️ DNS servers overridden to Google Public DNS (8.8.8.8, 8.8.4.4) for MongoDB resolution");
+}
+catch (e) {
+    console.warn("⚠️ Failed to override process DNS servers:", e.message);
+}
 const connectDB = async () => {
     try {
         const mongoUri = process.env.MONGODB_URI;

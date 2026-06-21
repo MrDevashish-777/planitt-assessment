@@ -9,7 +9,7 @@ import {
   getInterviewDetails,
   saveInterviewEvaluation,
 } from "@/services/admin.service";
-import { Candidate, Interview } from "@/types";
+import { Candidate } from "@/types";
 import { notifyError, notifySuccess } from "@/lib/notify";
 
 export default function InterviewDashboard() {
@@ -47,6 +47,7 @@ export default function InterviewDashboard() {
   const [feedbackNotes, setFeedbackNotes] = useState("");
   const [interviewerComments, setInterviewerComments] = useState("");
   const [decision, setDecision] = useState<"Selected" | "Rejected" | "Hold">("Hold");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [interviewHistory, setInterviewHistory] = useState<any[]>([]);
   const [isSavingEvaluation, setIsSavingEvaluation] = useState(false);
 
@@ -76,6 +77,7 @@ export default function InterviewDashboard() {
 
   useEffect(() => {
     loadCandidates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectCandidate = async (c: Candidate) => {
@@ -183,7 +185,7 @@ export default function InterviewDashboard() {
     if (!selectedCandidate) return;
     setGeneratingSummary(true);
     try {
-      const res = await generateCandidateSummary(selectedCandidate.id);
+      await generateCandidateSummary(selectedCandidate.id);
       notifySuccess("AI Summary updated");
       await loadCandidates(selectedCandidate.id);
     } catch (err) {
@@ -199,7 +201,7 @@ export default function InterviewDashboard() {
     if (!selectedCandidate) return;
     setGeneratingQuestions(true);
     try {
-      const res = await generateInterviewQuestions(selectedCandidate.id);
+      await generateInterviewQuestions(selectedCandidate.id);
       notifySuccess("AI Interview Questions refreshed");
       await loadCandidates(selectedCandidate.id);
     } catch (err) {
@@ -237,7 +239,7 @@ export default function InterviewDashboard() {
 
     setIsSavingEvaluation(true);
     try {
-      const res = await saveInterviewEvaluation(selectedCandidate.id, {
+      await saveInterviewEvaluation(selectedCandidate.id, {
         ratings,
         decision_status: decision,
         feedback_notes: feedbackNotes,
@@ -566,7 +568,7 @@ export default function InterviewDashboard() {
                   </div>
                 ) : (
                   <div className="bg-slate-50/50 border border-dashed border-slate-200 rounded-2xl p-8 text-center text-slate-400 text-sm">
-                    Generate an AI-powered evaluation summary of this candidate's resume, credentials, and aptitude metrics.
+                    Generate an AI-powered evaluation summary of this candidate&apos;s resume, credentials, and aptitude metrics.
                   </div>
                 )}
               </div>
@@ -782,7 +784,7 @@ export default function InterviewDashboard() {
                                 {hist.decision_status}
                               </span>
                             </p>
-                            <p className="mt-1 font-medium italic">"{hist.interviewer_comments || "No comments"}"</p>
+                             <p className="mt-1 font-medium italic">&quot;{hist.interviewer_comments || "No comments"}&quot;</p>
                             <p className="text-[10px] text-slate-400 mt-1">Logged on: {new Date(hist.timestamp).toLocaleString()}</p>
                           </div>
                           <span className="font-bold text-slate-800 bg-slate-200 px-2 py-0.5 rounded font-mono">

@@ -198,7 +198,7 @@ export default function SelectedDashboard() {
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sort By</label>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold text-gray-700"
           >
             <option value="score-desc">Aptitude Score (High to Low)</option>
@@ -357,7 +357,7 @@ export default function SelectedDashboard() {
                     <div className="space-y-2">
                       <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider block border-b border-gray-50 pb-1">Interviewer Comments</h3>
                       <p className="text-sm text-slate-700 bg-slate-50 p-4 rounded-2xl italic">
-                        "{interviewDetails.interviewer_comments}"
+                        &quot;{interviewDetails.interviewer_comments}&quot;
                       </p>
                     </div>
                   )}
@@ -379,7 +379,7 @@ export default function SelectedDashboard() {
               ) : (
                 <div className="text-center py-10 text-slate-400 text-sm">
                   No interview evaluation scorecard has been logged for this candidate yet.
-                  <p className="text-xs text-slate-400 mt-1 font-normal">Go to "Interviews" tab to grade candidate performance.</p>
+                  <p className="text-xs text-slate-400 mt-1 font-normal">Go to &quot;Interviews&quot; tab to grade candidate performance.</p>
                 </div>
               )}
             </div>

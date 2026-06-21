@@ -55,5 +55,65 @@ const userSchema = new mongoose_1.Schema({
         enum: ["ADMIN", "CANDIDATE"],
         default: "CANDIDATE",
     },
+    phone: {
+        type: String,
+        trim: true,
+    },
+    address: {
+        type: String,
+        trim: true,
+    },
+    resume_url: {
+        type: String,
+        trim: true,
+    },
+    about: {
+        type: String,
+        trim: true,
+    },
+    source: {
+        type: String,
+        enum: ["ADMIN", "CSV", "GOOGLE_FORM"],
+    },
+    form_submitted_at: {
+        type: Date,
+    },
+    education_details: {
+        type: String,
+        trim: true,
+    },
+    application_status: {
+        type: String,
+        enum: ["Applied", "Shortlisted", "Interviewing", "Rejected", "Selected"],
+        default: "Applied",
+    },
+    previous_round_results: {
+        type: String,
+        trim: true,
+    },
+    skills: {
+        type: String,
+        trim: true,
+    },
+    projects: {
+        type: String,
+        trim: true,
+    },
+    work_experience: {
+        type: String,
+        trim: true,
+    },
+    ai_summary: {
+        type: String,
+        trim: true,
+    },
+    ai_questions: {
+        type: Array,
+        default: [],
+    },
+    ai_questions_history: {
+        type: Array,
+        default: [],
+    },
 }, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
 exports.default = mongoose_1.default.model("User", userSchema);

@@ -4,7 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
+const path_1 = __importDefault(require("path"));
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../../.env") });
 const config = {
     PORT: process.env.PORT || 5000,
     NODE_ENV: process.env.NODE_ENV || "development",
@@ -15,5 +16,6 @@ const config = {
     CORS_ORIGIN: process.env.CORS_ORIGIN ||
         "https://planitt-assessment.onrender.com,https://test.planitt.in",
     ADMIN_SHARED_PASSWORD: process.env.ADMIN_SHARED_PASSWORD || "",
+    GOOGLE_FORM_WEBHOOK_SECRET: process.env.GOOGLE_FORM_WEBHOOK_SECRET || "",
 };
 exports.default = config;

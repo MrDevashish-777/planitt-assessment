@@ -14,10 +14,11 @@ const config_1 = __importDefault(require("../../config"));
  */
 async function login(req, res) {
     const { email, password } = req.body;
-    if (!email) {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!normalizedEmail) {
         return res.status(400).json({ message: "Email is required" });
     }
-    const user = await User_1.default.findOne({ email });
+    const user = await User_1.default.findOne({ email: normalizedEmail });
     if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
     }
