@@ -1,19 +1,9 @@
-import mongoose from "mongoose";
 import User from "../models/User";
-import dotenv from "dotenv";
-
-dotenv.config();
+import connectDB from "../config/db";
 
 async function deleteUserByEmail(email: string) {
   try {
-    const mongoUri = process.env.MONGODB_URI;
-    
-    if (!mongoUri) {
-      throw new Error("MONGODB_URI is not defined in environment variables");
-    }
-
-    await mongoose.connect(mongoUri);
-    console.log("✅ Connected to MongoDB");
+    await connectDB();
 
     const result = await User.deleteOne({ email });
 

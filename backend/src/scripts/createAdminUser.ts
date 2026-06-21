@@ -1,32 +1,9 @@
-import mongoose from "mongoose";
 import User from "../models/User";
-import dotenv from "dotenv";
-import dns from "dns";
-
-dotenv.config();
-
-// Override DNS servers to Google Public DNS to prevent querySrv ECONNREFUSED issues
-try {
-  dns.setServers(["8.8.8.8", "8.8.4.4"]);
-  console.log("ℹ️ DNS servers overridden to Google Public DNS (8.8.8.8, 8.8.4.4) for MongoDB resolution");
-} catch (e: any) {
-  console.warn("⚠️ Failed to override process DNS servers:", e.message);
-}
+import connectDB from "../config/db";
 
 async function createAdminUser() {
   try {
-    const mongoUri = process.env.MONGODB_URI;
-    
-    if (!mongoUri) {
-      throw new Error("MONGODB_URI is not defined in environment variables");
-    }
-
-    await mongoose.connect(mongoUri, {
-      retryWrites: true,
-      w: "majority",
-    });
-
-    console.log("✅ Connected to MongoDB");
+    await connectDB();
 
     const args = process.argv.slice(2);
     const email = args[0] || "admin@example.com";

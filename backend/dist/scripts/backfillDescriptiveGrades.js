@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const Answer_1 = __importDefault(require("../models/Answer"));
 const Attempt_1 = __importDefault(require("../models/Attempt"));
@@ -12,17 +11,7 @@ require("../models/Assessment");
 const scoring_service_1 = require("../services/scoring.service");
 const result_service_1 = require("../services/result.service");
 const attempt_status_1 = require("../utils/attempt-status");
-dotenv_1.default.config();
-async function connect() {
-    const mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri) {
-        throw new Error("MONGODB_URI is not defined in environment variables");
-    }
-    await mongoose_1.default.connect(mongoUri, {
-        retryWrites: true,
-        w: "majority",
-    });
-}
+const db_1 = __importDefault(require("../config/db"));
 async function findAttemptIdsWithPendingDescriptiveAnswers() {
     const rows = await Answer_1.default.aggregate([
         { $match: { is_graded: false } },
@@ -101,8 +90,7 @@ async function backfillPendingDescriptive() {
 }
 async function main() {
     try {
-        await connect();
-        console.log("Connected to MongoDB");
+        await (0, db_1.default)();
         await backfillPendingDescriptive();
         process.exit(0);
     }

@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import Answer from "../models/Answer";
 import Attempt from "../models/Attempt";
@@ -11,8 +10,7 @@ import {
 } from "../services/scoring.service";
 import { calculatePassFail } from "../services/result.service";
 import { isActiveAttemptStatus } from "../utils/attempt-status";
-
-dotenv.config();
+import connectDB from "../config/db";
 
 type BackfillStats = {
   candidateAttempts: number;
@@ -23,17 +21,6 @@ type BackfillStats = {
   resultPreserved: number;
   errors: number;
 };
-
-async function connect() {
-  const mongoUri = process.env.MONGODB_URI;
-  if (!mongoUri) {
-    throw new Error("MONGODB_URI is not defined in environment variables");
-  }
-  await mongoose.connect(mongoUri, {
-    retryWrites: true,
-    w: "majority",
-  });
-}
 
 async function findAttemptIdsWithPendingDescriptiveAnswers() {
   const rows = await Answer.aggregate<{ _id: mongoose.Types.ObjectId }>([
@@ -131,8 +118,7 @@ async function backfillPendingDescriptive() {
 
 async function main() {
   try {
-    await connect();
-    console.log("Connected to MongoDB");
+    await connectDB();
     await backfillPendingDescriptive();
     process.exit(0);
   } catch (error) {
